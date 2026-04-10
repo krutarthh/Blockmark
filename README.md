@@ -293,14 +293,14 @@ Query tasks (`queryEquals` in `tasks.eval.json`) pass when the document still ma
 
 The following runs all used **`HARNESS_MODE=live`**, **`npm run eval`** (or `node benchmarks/agent-harness/run.mjs --compare`), OpenAI’s Chat Completions API, and the shared eval fixture (including the large appendix in [`benchmarks/agent-edit-accuracy/fixture.md`](benchmarks/agent-edit-accuracy/fixture.md), on the order of **90k+ characters**). Token columns are **sums of API-reported usage** across the four tasks in that arm (same tasks for blockmark and baseline).
 
-| Model | Pass | Blockmark total tok | Baseline total tok | Headline vs baseline |
-|-------|------|--------------------:|-------------------:|----------------------|
-| `gpt-5.4-mini` | 8/8 | 9,739 | 13,591 | **−28%** (blockmark lower) |
-| `gpt-4o-mini` | 8/8 | 11,231 | 13,363 | **−16%** |
-| `gpt-4o` | 8/8 | 11,238 | 12,602 | **−11%** |
-| `gpt-5.4` | 8/8 | 15,249 | 13,559 | **+12%** (blockmark higher) |
+| Model | Pass | Blockmark total tok | Baseline total tok | Harness savings % |
+|-------|------|--------------------:|-------------------:|-------------------:|
+| `gpt-5.4-mini` | 8/8 | 9,739 | 13,591 | **28** (blockmark lower total) |
+| `gpt-4o-mini` | 8/8 | 11,231 | 13,363 | **16** |
+| `gpt-4o` | 8/8 | 11,238 | 12,602 | **11** |
+| `gpt-5.4` | 8/8 | 15,249 | 13,559 | **−12** (blockmark higher total) |
 
-“Headline vs baseline” matches the harness line *Token savings (blockmark vs baseline, sum of reported usage)* (positive % means blockmark used fewer total reported tokens). **Which model wins on totals varies:** blockmark often trades higher **prompt** tokens (tool rounds and context growth) for lower **completion** tokens; if prompt growth is large enough, baseline can still be cheaper on sum of reported usage (as with **`gpt-5.4`** here vs **`gpt-5.4-mini`**).
+The last column matches the harness math `round((1 − blockmark_total ÷ baseline_total) × 100)`, i.e. the number in *Token savings (blockmark vs baseline, sum of reported usage): N%* when **N ≥ 0**. **Positive N** means blockmark’s summed prompt+completion usage was **lower** than baseline’s. When **N < 0**, the harness instead prints *Token usage: blockmark used X% MORE than baseline*, where *X* = −*N* (same underlying ratio). Outcomes vary by model: e.g. **`gpt-5.4-mini`** reached **28%** savings on this run, while **`gpt-5.4`** had **−12%** (blockmark’s extra tool rounds grew prompt tokens enough that baseline’s full-document completions were cheaper on the summed total).
 
 <details>
 <summary>Per-task tables (gpt-5.4-mini)</summary>
