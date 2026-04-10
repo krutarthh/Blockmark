@@ -1,0 +1,5 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"req-8\"}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"get_block","content":"API response times shall\nnot exceed 200ms at the 95th percentile under normal load conditions\n(defined as 5000 concurrent users)."}
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_2","type":"function","function":{"name":"patch_block","arguments":"{\"id\":\"req-8\",\"content\":\"API response times shall\\nnot exceed 150ms at the 95th percentile under normal load conditions\\n(defined as 5000 concurrent users).\"}"}}]}
+{"role":"tool","tool_call_id":"call_2","name":"patch_block","content":"Patched block \"req-8\" successfully."}
+{"role":"assistant","content":"Updated req-8: the API response time threshold is now 150ms (was 200ms). The rest of the requirement is unchanged.","tool_calls":null}

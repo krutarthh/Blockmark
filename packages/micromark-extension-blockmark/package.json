@@ -1,0 +1,12 @@
+{
+  "name": "micromark-extension-blockmark",
+  "version": "0.1.0",
+  "description": "Blockmark prefix parser — tokenizes ^[id attrs] syntax",
+  "type": "module",
+  "exports": "./index.js",
+  "files": ["lib/", "index.js"],
+  "scripts": {
+    "test": "node --test test/index.js"
+  },
+  "license": "MIT"
+}

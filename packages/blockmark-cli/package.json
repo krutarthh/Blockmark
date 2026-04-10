@@ -1,0 +1,18 @@
+{
+  "name": "blockmark-cli",
+  "version": "0.1.0",
+  "description": "CLI for blockmark — patch, query, diff, list blocks in markdown files",
+  "type": "module",
+  "bin": {
+    "blockmark": "./bin/blockmark.js"
+  },
+  "files": ["bin/", "lib/"],
+  "scripts": {
+    "test": "node --test test/index.js"
+  },
+  "dependencies": {
+    "blockmark-sdk": "*",
+    "commander": "^13.0.0"
+  },
+  "license": "MIT"
+}

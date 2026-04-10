@@ -1,0 +1,5 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"req-1\"}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"get_block","content":"The system shall support\nsingle sign-on (SSO) via SAML 2.0 and OpenID Connect for enterprise customers."}
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_2","type":"function","function":{"name":"patch_block","arguments":"{\"id\":\"req-1\",\"content\":\"The system shall support\\nsingle sign-on (SSO) via SAML 2.0 and OpenID Connect (OIDC-compliant) for enterprise customers.\"}"}}]}
+{"role":"tool","tool_call_id":"call_2","name":"patch_block","content":"Patched block \"req-1\" successfully."}
+{"role":"assistant","content":"Done. I updated req-1 to specify that OpenID Connect support is OIDC-compliant. The SAML 2.0 mention is preserved.","tool_calls":null}

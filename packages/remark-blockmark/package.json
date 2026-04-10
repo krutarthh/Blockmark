@@ -1,0 +1,18 @@
+{
+  "name": "remark-blockmark",
+  "version": "0.1.0",
+  "description": "remark plugin for blockmark — stable block IDs in markdown",
+  "type": "module",
+  "exports": "./index.js",
+  "files": ["lib/", "index.js"],
+  "scripts": {
+    "test": "node --test test/index.js"
+  },
+  "dependencies": {
+    "mdast-util-blockmark": "*"
+  },
+  "peerDependencies": {
+    "unified": "^11.0.0"
+  },
+  "license": "MIT"
+}

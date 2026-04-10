@@ -1,0 +1,6 @@
+export { parse } from './lib/parse.js'
+export { getBlock } from './lib/get.js'
+export { patchBlock } from './lib/patch.js'
+export { queryBlocks } from './lib/query.js'
+export { listBlocks } from './lib/list.js'
+export { diffBlocks } from './lib/diff.js'

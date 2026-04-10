@@ -1,0 +1,42 @@
+[
+  {
+    "id": "edit-req-1",
+    "description": "Change req-1 to say OIDC-compliant instead of just OpenID Connect",
+    "prompt": "Update requirement req-1 so it mentions that the OpenID Connect support is OIDC-compliant.",
+    "verifier": {
+      "type": "blockContains",
+      "id": "req-1",
+      "expectedContains": ["OIDC-compliant", "SAML 2.0"]
+    }
+  },
+  {
+    "id": "update-perf-threshold",
+    "description": "Lower the API response time ceiling from 200ms to 150ms",
+    "prompt": "Change requirement req-8 so the API response time threshold is 150ms instead of 200ms. Keep everything else the same.",
+    "verifier": {
+      "type": "blockContains",
+      "id": "req-8",
+      "expectedContains": ["150ms", "95th percentile"]
+    }
+  },
+  {
+    "id": "add-decision-context",
+    "description": "Update dec-1 to mention the migration from MySQL",
+    "prompt": "Update decision dec-1 to clarify that we migrated from MySQL 8 to PostgreSQL 16. Keep the rest of the rationale intact.",
+    "verifier": {
+      "type": "blockContains",
+      "id": "dec-1",
+      "expectedContains": ["MySQL", "PostgreSQL 16"]
+    }
+  },
+  {
+    "id": "extract-open-high-reqs",
+    "description": "Query all open high-priority requirements",
+    "prompt": "List all the requirement block IDs that are both status=open and priority=high.",
+    "verifier": {
+      "type": "queryEquals",
+      "filter": { "type": "requirement", "status": "open", "priority": "high" },
+      "expectedIds": ["req-1", "req-2", "req-5", "req-8"]
+    }
+  }
+]

@@ -1,0 +1,5 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"dec-1\"}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"get_block","content":"We selected PostgreSQL 16 as the primary database for\nits mature JSONB support, full-text search, and strong transactional guarantees."}
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_2","type":"function","function":{"name":"patch_block","arguments":"{\"id\":\"dec-1\",\"content\":\"We migrated from MySQL 8 to PostgreSQL 16 as the primary database for\\nits mature JSONB support, full-text search, and strong transactional guarantees.\"}"}}]}
+{"role":"tool","tool_call_id":"call_2","name":"patch_block","content":"Patched block \"dec-1\" successfully."}
+{"role":"assistant","content":"Updated dec-1 to mention the migration from MySQL 8 to PostgreSQL 16.","tool_calls":null}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "edit-req-1",
+    "description": "Change req-1 to mention OIDC compliance",
+    "targetBlock": "req-1",
+    "newContent": "The system shall support single sign-on (SSO) via SAML 2.0 and OpenID Connect (OIDC-compliant) for enterprise customers."
+  },
+  {
+    "id": "mark-task-2-done",
+    "description": "Mark task-2 as done (RBAC admin built)",
+    "targetBlock": "task-2",
+    "newContent": "Build RBAC admin interface",
+    "newAttributes": { "status": "done" }
+  },
+  {
+    "id": "update-perf-threshold",
+    "description": "Change the API response time threshold from 200ms to 150ms",
+    "targetBlock": "req-8",
+    "newContent": "API response times shall not exceed 150ms at the 95th percentile under normal load conditions (defined as 5000 concurrent users)."
+  },
+  {
+    "id": "add-decision-context",
+    "description": "Update dec-1 to mention the migration from MySQL",
+    "targetBlock": "dec-1",
+    "newContent": "We migrated from MySQL 8 to PostgreSQL 16 as the primary database for its mature JSONB support, full-text search, and strong transactional guarantees."
+  },
+  {
+    "id": "extract-open-requirements",
+    "description": "Query all open high-priority requirements",
+    "queryFilter": { "type": "requirement", "status": "open", "priority": "high" }
+  }
+]

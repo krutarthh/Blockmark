@@ -1,0 +1,25 @@
+{
+  "name": "blockmark",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stable block IDs for agent-era markdown",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "eval": "node benchmarks/agent-harness/run.mjs",
+    "eval:replay": "HARNESS_MODE=replay node benchmarks/agent-harness/run.mjs --compare",
+    "eval:sync-baseline-replay": "node benchmarks/agent-harness/scripts/sync-baseline-replay.mjs",
+    "eval:smoke": "node benchmarks/agent-harness/run.mjs --arm blockmark --tasks edit-req-1",
+    "eval:models": "node benchmarks/agent-harness/list-models.mjs"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

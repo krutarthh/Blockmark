@@ -1,0 +1,19 @@
+{
+  "name": "blockmark-sdk",
+  "version": "0.1.0",
+  "description": "High-level SDK for blockmark — getBlock, patchBlock, queryBlocks, diff",
+  "type": "module",
+  "exports": "./index.js",
+  "files": ["lib/", "index.js"],
+  "scripts": {
+    "test": "node --test test/index.js"
+  },
+  "dependencies": {
+    "micromark-extension-blockmark": "*",
+    "remark-blockmark": "*",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.0"
+  },
+  "license": "MIT"
+}

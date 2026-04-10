@@ -1,0 +1,17 @@
+{
+  "name": "mdast-util-blockmark",
+  "version": "0.1.0",
+  "description": "mdast utilities for blockmark — attach/extract block IDs from AST nodes",
+  "type": "module",
+  "exports": "./index.js",
+  "files": ["lib/", "index.js"],
+  "scripts": {
+    "test": "node --test test/index.js"
+  },
+  "dependencies": {
+    "micromark-extension-blockmark": "*",
+    "unist-util-visit": "^5.0.0",
+    "@types/mdast": "^4.0.0"
+  },
+  "license": "MIT"
+}

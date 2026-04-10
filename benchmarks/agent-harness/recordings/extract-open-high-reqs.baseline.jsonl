@@ -1,0 +1,3 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"read_document","arguments":"{}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"read_document","content":"<full document>"}
+{"role":"assistant","content":"The open, high-priority requirements are: req-1, req-2, req-5, and req-8.","tool_calls":null}
