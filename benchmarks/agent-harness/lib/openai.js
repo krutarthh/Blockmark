@@ -160,7 +160,7 @@ export async function chatCompletion(opts) {
   const body = {
     model,
     messages: opts.messages,
-    temperature: 0
+    temperature: 1
   }
 
   if (opts.tools?.length) {

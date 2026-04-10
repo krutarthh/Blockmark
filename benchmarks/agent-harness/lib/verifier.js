@@ -20,9 +20,38 @@ export function verify(source, verifier, lastContent) {
       return verifyBlockContains(source, verifier)
     case 'queryEquals':
       return verifyQueryEquals(source, verifier, lastContent)
+    case 'multiBlockContains':
+      return verifyMultiBlockContains(source, verifier)
+    case 'documentUnchanged':
+      return verifyDocumentUnchanged(source, verifier)
     default:
       return { pass: false, detail: `Unknown verifier type: ${verifier.type}` }
   }
+}
+
+function verifyMultiBlockContains(source, v) {
+  if (!Array.isArray(v.blocks) || v.blocks.length === 0) {
+    return { pass: false, detail: 'multiBlockContains verifier requires blocks[]' }
+  }
+
+  for (const block of v.blocks) {
+    const content = getBlock(source, block.id)
+    if (content === null) {
+      return { pass: false, detail: `Block "${block.id}" not found in document` }
+    }
+    const missing = (block.expectedContains || []).filter(s => !content.includes(s))
+    if (missing.length > 0) {
+      return {
+        pass: false,
+        detail: `Block "${block.id}" missing substrings: ${JSON.stringify(missing)}`
+      }
+    }
+  }
+
+  const unchangedCheck = verifyUnchangedBlocks(source, v)
+  if (!unchangedCheck.pass) return unchangedCheck
+
+  return { pass: true, detail: `All ${v.blocks.length} blocks satisfied expected substrings` }
 }
 
 function verifyBlockEquals(source, v) {
@@ -45,13 +74,19 @@ function verifyBlockContains(source, v) {
     return { pass: false, detail: `Block "${v.id}" not found in document` }
   }
   const missing = v.expectedContains.filter(s => !content.includes(s))
-  if (missing.length === 0) {
-    return { pass: true, detail: `All ${v.expectedContains.length} expected substrings found` }
+  if (missing.length > 0) {
+    return {
+      pass: false,
+      detail: `Missing substrings: ${JSON.stringify(missing)}\nBlock content: "${content.slice(0, 200)}"`
+    }
   }
-  return {
-    pass: false,
-    detail: `Missing substrings: ${JSON.stringify(missing)}\nBlock content: "${content.slice(0, 200)}"`
+
+  const unchangedCheck = verifyUnchangedBlocks(source, v)
+  if (!unchangedCheck.pass) {
+    return unchangedCheck
   }
+
+  return { pass: true, detail: `All ${v.expectedContains.length} expected substrings found` }
 }
 
 function verifyQueryEquals(source, v, lastContent) {
@@ -83,4 +118,35 @@ function verifyQueryEquals(source, v, lastContent) {
   }
 
   return { pass: true, detail: `All ${expectedIds.length} IDs match (SDK query)` }
+}
+
+function verifyDocumentUnchanged(source, v) {
+  if (typeof v.expectedSource !== 'string') {
+    return { pass: false, detail: 'documentUnchanged verifier requires expectedSource string' }
+  }
+  if (source === v.expectedSource) {
+    return { pass: true, detail: 'Document remained unchanged' }
+  }
+  return { pass: false, detail: 'Document changed but task expected no modifications' }
+}
+
+function verifyUnchangedBlocks(source, v) {
+  if (!Array.isArray(v.mustMatchBlocks) || v.mustMatchBlocks.length === 0) {
+    return { pass: true, detail: '' }
+  }
+
+  for (const expected of v.mustMatchBlocks) {
+    const actual = getBlock(source, expected.id)
+    if (actual === null) {
+      return { pass: false, detail: `Block "${expected.id}" missing while verifying unchanged blocks` }
+    }
+    if (actual.trim() !== expected.content.trim()) {
+      return {
+        pass: false,
+        detail: `Unrelated block "${expected.id}" changed unexpectedly`
+      }
+    }
+  }
+
+  return { pass: true, detail: '' }
 }

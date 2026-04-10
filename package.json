@@ -16,7 +16,8 @@
     "eval:replay": "HARNESS_MODE=replay node benchmarks/agent-harness/run.mjs --compare",
     "eval:sync-baseline-replay": "node benchmarks/agent-harness/scripts/sync-baseline-replay.mjs",
     "eval:smoke": "node benchmarks/agent-harness/run.mjs --arm blockmark --tasks edit-req-1",
-    "eval:models": "node benchmarks/agent-harness/list-models.mjs"
+    "eval:models": "node benchmarks/agent-harness/list-models.mjs",
+    "eval:matrix:openai": "node benchmarks/agent-harness/scripts/run-openai-matrix.mjs"
   },
   "license": "MIT",
   "engines": {

@@ -47,13 +47,13 @@ blockmark diff v1.md v2.md
 # → req-1: changed, req-2: unchanged, req-3: added
 ```
 
-**97% fewer tokens** compared to full-document rewrites. ([See the benchmark.](benchmarks/agent-edit-accuracy/benchmark.js))
+On the **scripted** benchmark in [`benchmarks/agent-edit-accuracy/benchmark.js`](benchmarks/agent-edit-accuracy/benchmark.js), blockmark traffic is **far smaller** than a full-document rewrite for the same edits (often **~90%+** fewer characters in/out on that simulation). **Live** LLM runs vary by model, fixture size, and network—see [Evaluation results](#evaluation-results-recorded-runs).
 
 ## Quickstart
 
 ```bash
 # Clone and install
-git clone https://github.com/your-org/blockmark.git
+git clone https://github.com/krutarthh/Blockmark.git
 cd blockmark
 npm install
 
@@ -276,95 +276,78 @@ If you change `benchmarks/agent-edit-accuracy/fixture.md`, baseline replay files
 | `HARNESS_MODEL` | `gpt-4o-mini` | Model name |
 | `HARNESS_MODE` | `live` | `live`, `record`, or `replay` |
 | `HARNESS_DEBUG` | (unset) | Set to `1` to print the resolved completions URL to stderr |
+| `HARNESS_FIXTURE_TIER` | `large` | `large` = [`fixture.md`](benchmarks/agent-edit-accuracy/fixture.md) (~90k+ chars appendix); `small` = [`fixture.small.md`](benchmarks/agent-edit-accuracy/fixture.small.md) (cheaper iteration). |
+| `HARNESS_FIXTURE` | (unset) | Optional absolute path to a custom markdown fixture (overrides tier). |
 
 ### Reading the report
 
-The harness prints a table with one row per task per arm (shape is similar to the per-task tables under [Sample live results (multi-model)](#sample-live-results-multi-model) above).
+The harness prints one row per **task** and **arm** with **Steps**, **PromptTok**, **CompTok**, and **Pass**.
 
-- **Steps** — number of LLM round-trips
-- **PromptTok / CompTok** — total tokens consumed (when the API reports them)
-- **Pass** — whether the verifier assertion held on the final document
+- **Steps** — LLM round-trips (tool calls).
+- **PromptTok / CompTok** — API-reported usage (replay mode shows `0`).
+- **Pass** — verifier result on the final document (see [`tasks.eval.json`](benchmarks/agent-harness/tasks.eval.json)).
 
-In `--compare` mode the summary also shows aggregate token usage for blockmark vs baseline. A **negative** “savings” number means blockmark used more reported tokens in that run (common with small models that take extra tool rounds and grow the chat context). Baseline often has **lower prompt** tokens but **higher completion** tokens on `write_document` because it echoes the full file. Interpret the table per task, not only the headline.
+**Headline token comparison** (blockmark vs baseline sum) is only printed when **every** task passes on **both** arms with no transport errors. If anything fails (model error, `fetch failed`, or verifier miss), the run is **not** a fair apples-to-apples cost comparison—read the per-task rows.
 
-Query tasks (`queryEquals` in `tasks.eval.json`) pass when the document still matches the expected `queryBlocks` result. They do **not** require the model to spell out every block ID unless you set `"requireModelMentionIds": true` on that verifier.
+Query tasks use `queryEquals`; the harness can require the model to cite IDs in prose (`requireModelMentionIds`) for stricter checks.
 
-### Sample live results (multi-model)
+### Harness implementation (eval rigor + cheaper blockmark tool traffic)
 
-The following runs all used **`HARNESS_MODE=live`**, **`npm run eval`** (or `node benchmarks/agent-harness/run.mjs --compare`), OpenAI’s Chat Completions API, and the shared eval fixture (including the large appendix in [`benchmarks/agent-edit-accuracy/fixture.md`](benchmarks/agent-edit-accuracy/fixture.md), on the order of **90k+ characters**). Token columns are **sums of API-reported usage** across the four tasks in that arm (same tasks for blockmark and baseline).
+- **Blockmark system prompt** ([`run.mjs`](benchmarks/agent-harness/run.mjs)): prefer **`get_block` → `patch_block`** when IDs are known; avoid **`list_blocks`** unless necessary.
+- **Compact `list_blocks`** ([`tools.js`](benchmarks/agent-harness/lib/tools.js)): returns only `id`, `attributes`, `nodeType`.
+- **Verifiers** ([`verifier.js`](benchmarks/agent-harness/lib/verifier.js), [`tasks.eval.json`](benchmarks/agent-harness/tasks.eval.json)): `mustMatchBlockIds` on edits; **`documentUnchanged`** / **`multiBlockContains`** for no-op and multi-block tasks; query task can require cited IDs.
+- **Fixtures**: default **large** [`fixture.md`](benchmarks/agent-edit-accuracy/fixture.md); **`HARNESS_FIXTURE_TIER=small`** uses [`fixture.small.md`](benchmarks/agent-edit-accuracy/fixture.small.md) for cheaper live iteration.
+- **Transparency**: stderr line `mode`, `model`, `base`; **`--json`** for machine-readable output.
+- **Fair aggregate line**: savings are omitted unless all paired tasks succeed (see above).
 
-| Model | Pass | Blockmark total tok | Baseline total tok | Harness savings % |
-|-------|------|--------------------:|-------------------:|-------------------:|
-| `gpt-5.4-mini` | 8/8 | 9,739 | 13,591 | **28** (blockmark lower total) |
-| `gpt-4o-mini` | 8/8 | 11,231 | 13,363 | **16** |
-| `gpt-4o` | 8/8 | 11,238 | 12,602 | **11** |
-| `gpt-5.4` | 8/8 | 15,249 | 13,559 | **−12** (blockmark higher total) |
+### Evaluation results (recorded runs)
 
-The last column matches the harness math `round((1 − blockmark_total ÷ baseline_total) × 100)`, i.e. the number in *Token savings (blockmark vs baseline, sum of reported usage): N%* when **N ≥ 0**. **Positive N** means blockmark’s summed prompt+completion usage was **lower** than baseline’s. When **N < 0**, the harness instead prints *Token usage: blockmark used X% MORE than baseline*, where *X* = −*N* (same underlying ratio). Outcomes vary by model: e.g. **`gpt-5.4-mini`** reached **28%** savings on this run, while **`gpt-5.4`** had **−12%** (blockmark’s extra tool rounds grew prompt tokens enough that baseline’s full-document completions were cheaper on the summed total).
+**CI / zero API cost** — regression coverage of tools + SDK + verifiers:
 
-<details>
-<summary>Per-task tables (gpt-5.4-mini)</summary>
+```bash
+npm run eval:replay
+```
 
-| Task | Arm | Pass | Steps | PromptTok | CompTok |
-|------|-----|------|------:|----------:|--------:|
-| edit-req-1 | blockmark | YES | 3 | 1,510 | 94 |
-| update-perf-threshold | blockmark | YES | 4 | 4,921 | 112 |
-| add-decision-context | blockmark | YES | 3 | 1,537 | 105 |
-| extract-open-high-reqs | blockmark | YES | 2 | 1,408 | 52 |
-| edit-req-1 | baseline | YES | 3 | 3,199 | 884 |
-| update-perf-threshold | baseline | YES | 3 | 3,208 | 856 |
-| add-decision-context | baseline | YES | 3 | 3,219 | 887 |
-| extract-open-high-reqs | baseline | YES | 2 | 1,280 | 58 |
+Expected: **14/14** (7 tasks × 2 arms), `HARNESS_MODE=replay`, no tokens billed.
 
-</details>
+---
 
-<details>
-<summary>Per-task tables (gpt-4o-mini)</summary>
+**Live OpenAI runs** below used `https://api.openai.com/v1` and the **large** fixture unless noted. Totals are **single-run**, **API-reported**, **not** dollar costs. Interpret as “what we saw on this harness,” not a universal law.
 
-| Task | Arm | Pass | Steps | PromptTok | CompTok |
-|------|-----|------|------:|----------:|--------:|
-| edit-req-1 | blockmark | YES | 4 | 3,185 | 102 |
-| update-perf-threshold | blockmark | YES | 4 | 3,217 | 110 |
-| add-decision-context | blockmark | YES | 4 | 3,221 | 113 |
-| extract-open-high-reqs | blockmark | YES | 2 | 1,234 | 49 |
-| edit-req-1 | baseline | YES | 3 | 2,916 | 1,657 |
-| update-perf-threshold | baseline | YES | 3 | 2,935 | 876 |
-| add-decision-context | baseline | YES | 3 | 2,942 | 886 |
-| extract-open-high-reqs | baseline | YES | 2 | 1,106 | 45 |
+#### A — Four-task suite (8 paired rows: 4 tasks × 2 arms)
 
-</details>
+Same four tasks as in earlier benchmarks (`edit-req-1`, `update-perf-threshold`, `add-decision-context`, `extract-open-high-reqs`).
 
-<details>
-<summary>Per-task tables (gpt-4o)</summary>
+| Model | All pass? | Headline vs baseline (sum of prompt+completion) |
+|-------|-----------|---------------------------------------------------|
+| `gpt-5.4-mini` | 8/8 | **28%** lower total on blockmark |
+| `gpt-4o-mini` | 8/8 | **16%** lower |
+| `gpt-4o` | 8/8 | **11%** lower |
+| `gpt-5.4` | 8/8 | **12%** higher on blockmark |
+| `gpt-5.4` (repeat run) | 8/8 | **22%** higher on blockmark |
 
-| Task | Arm | Pass | Steps | PromptTok | CompTok |
-|------|-----|------|------:|----------:|--------:|
-| edit-req-1 | blockmark | YES | 4 | 3,183 | 100 |
-| update-perf-threshold | blockmark | YES | 4 | 3,217 | 109 |
-| add-decision-context | blockmark | YES | 4 | 3,221 | 113 |
-| extract-open-high-reqs | blockmark | YES | 2 | 1,242 | 53 |
-| edit-req-1 | baseline | YES | 3 | 2,923 | 876 |
-| update-perf-threshold | baseline | YES | 3 | 2,938 | 879 |
-| add-decision-context | baseline | YES | 3 | 2,949 | 886 |
-| extract-open-high-reqs | baseline | YES | 2 | 1,106 | 45 |
+Formula when both arms complete all tasks: `round((1 − blockmark_total ÷ baseline_total) × 100)`.
 
-</details>
+**Also observed:** `404` with *“This is not a chat model…”* — `HARNESS_MODEL` must be a **chat** model that supports `/v1/chat/completions` + tools (use `npm run eval:models`). **`429 insufficient_quota`** — billing/quota exhausted. **Partial baseline** (`fetch failed` on large `write_document`) — do **not** trust a printed headline until both arms finish every task.
 
-<details>
-<summary>Per-task tables (gpt-5.4)</summary>
+#### B — Seven-task suite (14 paired rows; current [`tasks.eval.json`](benchmarks/agent-harness/tasks.eval.json))
 
-| Task | Arm | Pass | Steps | PromptTok | CompTok |
-|------|-----|------|------:|----------:|--------:|
-| edit-req-1 | blockmark | YES | 4 | 3,556 | 154 |
-| update-perf-threshold | blockmark | YES | 4 | 4,921 | 113 |
-| add-decision-context | blockmark | YES | 4 | 4,926 | 117 |
-| extract-open-high-reqs | blockmark | YES | 2 | 1,408 | 54 |
-| edit-req-1 | baseline | YES | 3 | 3,191 | 875 |
-| update-perf-threshold | baseline | YES | 3 | 3,208 | 868 |
-| add-decision-context | baseline | YES | 3 | 3,220 | 886 |
-| extract-open-high-reqs | baseline | YES | 2 | 1,280 | 31 |
+Adds `unknown-id-noop`, `multi-block-status-update`, `read-only-summary`.
 
-</details>
+| Model | Pass (of 14) | Notes |
+|-------|--------------|--------|
+| `gpt-5.4-mini` | **14/14** | Full pass; large-doc run showed ~**94%** lower blockmark total vs baseline in logs when both arms completed all tasks |
+| `gpt-5.4-mini` | **13/14** | Baseline **`unknown-id-noop`** failed: model changed the document when asked not to — quality issue on baseline arm, not a token “win” |
+| `gpt-4o-mini` | **7/7** blockmark only | Blockmark **18,609** total tokens (sum of prompt+completion) with all tasks passing; **baseline** hit **`fetch failed`** on several full-document writes — **no** fair combined headline for that run |
+| `gpt-4o-mini` | **10/14** | Baseline **`fetch failed`** on edit tasks (large `write_document` / network) — **ignore** any printed savings line; retry or use `HARNESS_FIXTURE_TIER=small` |
+
+**Other live notes:** occasional **blockmark** miss on `add-decision-context` (e.g. missing `MySQL` in `dec-1`) until the model retries—verifier correctly fails that task.
+
+#### C — Budget-friendly workflow
+
+- Ship **CI** with `npm run eval:replay` (free).
+- For **live** checks without burning tokens on the appendix: `HARNESS_FIXTURE_TIER=small` and/or a single task: `--tasks edit-req-1`.
+- Optional multi-repeat matrix (costly): [`benchmarks/agent-harness/scripts/run-openai-matrix.mjs`](benchmarks/agent-harness/scripts/run-openai-matrix.mjs) via `npm run eval:matrix:openai` — set `HARNESS_REPEATS`, `HARNESS_MODEL_MATRIX`, optional `OPENAI_PRICE_*` for rough USD estimates.
 
 ## Examples
 

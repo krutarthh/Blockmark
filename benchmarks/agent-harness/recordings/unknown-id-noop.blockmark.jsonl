@@ -1,0 +1,3 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"req-404\"}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"get_block","content":"Error: block \"req-404\" not found"}
+{"role":"assistant","content":"I couldn't find block req-404, so I left the document unchanged.","tool_calls":null}

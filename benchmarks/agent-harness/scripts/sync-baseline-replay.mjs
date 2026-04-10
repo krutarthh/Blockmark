@@ -36,6 +36,22 @@ const edits = {
   }
 }
 
+const multiEdits = {
+  'multi-block-status-update': {
+    replacements: [
+      [
+        'Custom roles shall be configurable per organization.',
+        'Custom roles shall be configurable per organization and this applies to all enterprise tenants.'
+      ],
+      [
+        'shall occur automatically every 90 days.',
+        'shall occur automatically every 90 days; this applies to all enterprise tenants.'
+      ]
+    ],
+    final: 'Updated req-2 and req-6 to include enterprise-tenant applicability.'
+  }
+}
+
 function writeBaseline(name, patchedDoc, finalMsg) {
   const lines = [
     JSON.stringify({
@@ -88,4 +104,43 @@ for (const [name, { id, content, final: finalMsg }] of Object.entries(edits)) {
   writeBaseline(name, patchBlock(doc, id, content), finalMsg)
 }
 
-console.log('Synced baseline replay files from fixture:', Object.keys(edits).join(', '))
+for (const [name, data] of Object.entries(multiEdits)) {
+  let patched = doc
+  for (const [from, to] of data.replacements) {
+    patched = patched.replace(from, to)
+  }
+  writeBaseline(name, patched, data.final)
+}
+
+function writeReadOnlyBaseline(name, finalMsg) {
+  const lines = [
+    JSON.stringify({
+      role: 'assistant',
+      content: null,
+      tool_calls: [
+        {
+          id: 'call_1',
+          type: 'function',
+          function: { name: 'read_document', arguments: '{}' }
+        }
+      ]
+    }),
+    JSON.stringify({
+      role: 'tool',
+      tool_call_id: 'call_1',
+      name: 'read_document',
+      content: '<full document>'
+    }),
+    JSON.stringify({
+      role: 'assistant',
+      content: finalMsg,
+      tool_calls: null
+    })
+  ]
+  writeFileSync(join(recordingsDir, `${name}.baseline.jsonl`), lines.join('\n') + '\n')
+}
+
+writeReadOnlyBaseline('unknown-id-noop', 'I cannot find block req-404 in the document, so no changes were made.')
+writeReadOnlyBaseline('read-only-summary', 'req-1 requires enterprise SSO via SAML 2.0 and OpenID Connect. req-8 sets API response times to 200ms at the 95th percentile under normal load.')
+
+console.log('Synced baseline replay files from fixture:', [...Object.keys(edits), ...Object.keys(multiEdits), 'unknown-id-noop', 'read-only-summary'].join(', '))

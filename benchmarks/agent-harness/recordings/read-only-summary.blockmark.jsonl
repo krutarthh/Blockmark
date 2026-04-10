@@ -1,0 +1,4 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"req-1\"}"}},{"id":"call_2","type":"function","function":{"name":"get_block","arguments":"{\"id\":\"req-8\"}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"get_block","content":"The system shall support\nsingle sign-on (SSO) via SAML 2.0 and OpenID Connect for enterprise customers."}
+{"role":"tool","tool_call_id":"call_2","name":"get_block","content":"API response times shall\nnot exceed 200ms at the 95th percentile under normal load conditions\n(defined as 5000 concurrent users)."}
+{"role":"assistant","content":"req-1 requires enterprise SSO via SAML 2.0 and OpenID Connect. req-8 sets a 200ms 95th-percentile API response-time target at normal load.","tool_calls":null}

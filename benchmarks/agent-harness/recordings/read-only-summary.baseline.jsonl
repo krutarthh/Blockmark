@@ -1,0 +1,3 @@
+{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"read_document","arguments":"{}"}}]}
+{"role":"tool","tool_call_id":"call_1","name":"read_document","content":"<full document>"}
+{"role":"assistant","content":"req-1 requires enterprise SSO via SAML 2.0 and OpenID Connect. req-8 sets API response times to 200ms at the 95th percentile under normal load.","tool_calls":null}

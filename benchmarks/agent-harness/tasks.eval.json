@@ -6,7 +6,8 @@
     "verifier": {
       "type": "blockContains",
       "id": "req-1",
-      "expectedContains": ["OIDC-compliant", "SAML 2.0"]
+      "expectedContains": ["OIDC-compliant", "SAML 2.0"],
+      "mustMatchBlockIds": ["req-8", "dec-1", "task-2"]
     }
   },
   {
@@ -16,7 +17,8 @@
     "verifier": {
       "type": "blockContains",
       "id": "req-8",
-      "expectedContains": ["150ms", "95th percentile"]
+      "expectedContains": ["150ms", "95th percentile"],
+      "mustMatchBlockIds": ["req-1", "dec-1", "task-2"]
     }
   },
   {
@@ -26,7 +28,8 @@
     "verifier": {
       "type": "blockContains",
       "id": "dec-1",
-      "expectedContains": ["MySQL", "PostgreSQL 16"]
+      "expectedContains": ["MySQL", "PostgreSQL 16"],
+      "mustMatchBlockIds": ["req-1", "req-8", "task-2"]
     }
   },
   {
@@ -36,7 +39,37 @@
     "verifier": {
       "type": "queryEquals",
       "filter": { "type": "requirement", "status": "open", "priority": "high" },
-      "expectedIds": ["req-1", "req-2", "req-5", "req-8"]
+      "expectedIds": ["req-1", "req-2", "req-5", "req-8"],
+      "requireModelMentionIds": true
+    }
+  },
+  {
+    "id": "unknown-id-noop",
+    "description": "Attempt to edit an unknown ID; document should stay unchanged",
+    "prompt": "Update requirement req-404 so it requires regional failover in 30 seconds. If the block does not exist, explain that clearly and do not modify the document.",
+    "verifier": {
+      "type": "documentUnchanged"
+    }
+  },
+  {
+    "id": "multi-block-status-update",
+    "description": "Apply one request that edits two requirement blocks",
+    "prompt": "Update req-2 and req-6: add the phrase \"applies to all enterprise tenants\" to each requirement while keeping the rest of each requirement intact.",
+    "verifier": {
+      "type": "multiBlockContains",
+      "blocks": [
+        { "id": "req-2", "expectedContains": ["applies to all enterprise tenants"] },
+        { "id": "req-6", "expectedContains": ["applies to all enterprise tenants"] }
+      ],
+      "mustMatchBlockIds": ["req-1", "req-8", "dec-1", "task-2"]
+    }
+  },
+  {
+    "id": "read-only-summary",
+    "description": "Read-only request should not edit the document",
+    "prompt": "Briefly summarize req-1 and req-8 in two sentences. Do not modify the document.",
+    "verifier": {
+      "type": "documentUnchanged"
     }
   }
 ]

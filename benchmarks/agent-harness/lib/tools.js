@@ -100,8 +100,15 @@ export function createBlockmarkExecutor(initialSource) {
   return {
     execute(name, args) {
       switch (name) {
-        case 'list_blocks':
-          return JSON.stringify(listBlocks(source))
+        case 'list_blocks': {
+          // Keep list output compact: IDs + attrs are enough for planning.
+          const blocks = listBlocks(source).map(b => ({
+            id: b.id,
+            attributes: b.attributes,
+            nodeType: b.nodeType
+          }))
+          return JSON.stringify(blocks)
+        }
         case 'get_block':
           return getBlock(source, args.id) ?? `Error: block "${args.id}" not found`
         case 'patch_block':
