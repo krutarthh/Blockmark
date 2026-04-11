@@ -1,8 +1,8 @@
 # Blockmark
 
-**Stable block IDs for agent-era markdown.**
+**Addressable blocks for agent-friendly markdown.**
 
-Blockmark adds one thing to markdown: addressable blocks. A lightweight `^[id]` prefix that gives any block a permanent handle — so AI agents can target, extract, and patch individual blocks without full-document rewrites.
+Blockmark is a lightweight markdown convention and toolchain for adding stable block IDs to prose. It uses a visible `^[id]` prefix so agents and tools can target, extract, query, and patch individual blocks without relying on fragile line numbers or full-document rewrites.
 
 ```markdown
 ^[req-1 type=requirement status=open] Users must authenticate via OAuth 2.0.
@@ -17,7 +17,7 @@ The system uses a microservices pattern.
 
 ## The Problem
 
-Every AI agent editing tool uses fragile strategies to target markdown:
+Many agent markdown editing workflows still fall back to brittle targeting strategies:
 
 | Strategy | How it breaks |
 |----------|--------------|
@@ -26,7 +26,7 @@ Every AI agent editing tool uses fragile strategies to target markdown:
 | **Full-document rewrites** | Wasteful tokens, noisy diffs, risks losing content |
 | **Regex on prose** | Unreliable on natural language |
 
-The result: agents do unnecessary work, edits are fragile, and diffs are unreadable.
+The result: agents read and write more text than necessary, edits fail in avoidable ways, and diffs get noisy.
 
 ## The Solution
 
@@ -47,7 +47,29 @@ blockmark diff v1.md v2.md
 # → req-1: changed, req-2: unchanged, req-3: added
 ```
 
-On the **scripted** benchmark in [`benchmarks/agent-edit-accuracy/benchmark.js`](benchmarks/agent-edit-accuracy/benchmark.js), blockmark traffic is **far smaller** than a full-document rewrite for the same edits (often **~90%+** fewer characters in/out on that simulation). **Live** LLM runs vary by model, fixture size, and network—see [Evaluation results](#evaluation-results-recorded-runs).
+On the **scripted** benchmark in [`benchmarks/agent-edit-accuracy/benchmark.js`](benchmarks/agent-edit-accuracy/benchmark.js), blockmark traffic is **far smaller** than a full-document rewrite for the same edits (often **~90%+** fewer characters in/out on that simulation). Treat that as an upper-bound style comparison, not a universal production claim. **Live** LLM runs vary by model, fixture size, tool behavior, and network; see [Evaluation results](#evaluation-results-recorded-runs).
+
+## Where Blockmark Fits
+
+Blockmark is most useful when:
+
+- You have long-lived markdown docs that agents need to update repeatedly.
+- You want small, reviewable diffs instead of wholesale document rewrites.
+- You control the document format and can adopt lightweight inline IDs.
+- You want a markdown-native representation rather than hidden metadata or a separate database.
+
+Blockmark is less compelling when:
+
+- Simple heading paths or content search are already good enough.
+- You cannot add inline syntax to documents.
+- Your real problem is cross-document discovery, which is more of a search or RAG problem.
+- You need a full rich-text editor model rather than markdown-compatible source text.
+
+## Positioning
+
+Blockmark is **not** the first system to make document fragments addressable. Related ideas already exist in tools like Obsidian block references, heading-path markdown patchers, and newer agent-oriented markdown editing models.
+
+The point of Blockmark is narrower: a visible markdown-native block ID syntax plus a JS toolchain for **`get` / `patch` / `query` / `list` / `diff`** workflows on plain markdown files. The goal is not to claim a brand-new category, but to provide a pragmatic design point that works well for agent-edited markdown.
 
 ## Quickstart
 
@@ -145,15 +167,17 @@ Full spec: [spec/v0.1.md](spec/v0.1.md)
                      Agent tool integrations
 ```
 
-## Why Not...
+## Related Approaches
 
-**Obsidian `^block-id`?** — Suffix position (agent has to read the whole block to find the ID), not standardized outside Obsidian, no programmatic SDK.
+**Obsidian `^block-id`**: close prior art for block references in markdown. Blockmark differs by using a prefix position and shipping parser, SDK, CLI, and query/patch utilities aimed at programmatic editing workflows.
 
-**Kramdown `{#id}`?** — Tied to Kramdown renderer, no agent tooling, no query/patch operations.
+**Heading-path patchers**: useful when headings are stable, but they target sections rather than arbitrary blocks and can still become ambiguous as documents evolve.
 
-**MDX/components?** — Heavy runtime, JSX syntax, not designed for agent editing.
+**Hidden metadata comments / annotations**: can work well, especially for filtering and retrieval, but they make the addressability layer less obvious in raw markdown and often depend on custom processors.
 
-**YAML frontmatter?** — Document-level only, not block-level.
+**MDOM / structured document models**: more expressive and powerful, but also heavier abstractions. Blockmark aims to stay closer to plain markdown text with a smaller surface area.
+
+**YAML frontmatter**: useful for document-level metadata, not for assigning stable handles to individual paragraphs, headings, quotes, or list items.
 
 ## Tests
 
